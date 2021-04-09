@@ -10,9 +10,14 @@
 </head>
 <body>
     <div class="dash">
-        <?php include_once(__DIR__.'/layouts/partials/header.php'); ?>
+    <?php include_once(__DIR__.'/layouts/partials/header.php'); ?>
         <div class="container-fluid">
-            <i class="fa fa-search"></i>
+            <div class="col-md-3">
+            <?php include_once(__DIR__.'/layouts/partials/sidebar.php'); ?>
+            </div>
+            <div class="col-md-7">
+                
+            </div>
         </div>
     </div>
     <?php include_once(__DIR__.'/layouts/scripts.php');?>
