@@ -1,0 +1,125 @@
+<?php
+if (session_id() === '') {
+    session_start();
+}
+include_once(__DIR__ . '/../../dbconnect.php');
+$sqlSelectLH = "SElECT * FROM loaihanghoa";
+$resultLH = mysqli_query($conn, $sqlSelectLH);
+$dataLH = [];
+while ($row = mysqli_fetch_array($resultLH, MYSQLI_ASSOC)) {
+    $dataLH[] = array(
+        'MaLoaiHang' => $row['MaLoaiHang'],
+        'TenLoaiHang' => $row['TenLoaiHang'],
+    );
+}
+?>
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trang chủ | Tìm kiếm</title>
+    <?php include_once(__DIR__ . '/../layouts/styles.php'); ?>
+    <link rel="stylesheet" href="/ltweb/assets/frontend/css/style.css" type="text/css">
+
+</head>
+
+<body id="body-container">
+    <?php include_once(__DIR__ . '/../layouts/partials/header.php') ?>
+    <main>
+        <?php
+        if (isset($_REQUEST['btnsearch'])) {
+            $searchkey = $_GET['search'];
+            $sqlSearch = <<<EOT
+                SELECT * FROM hanghoa hh JOIN loaihanghoa lh ON hh.MaLoaiHang=lh.MaLoaiHang WHERE hh.TenHH LIKE '%$searchkey%' OR hh.TenHH LIKE '$searchkey%';
+EOT;
+            $resultSearch = mysqli_query($conn, $sqlSearch);
+
+            $num = mysqli_num_rows($resultSearch);
+            if (($num > 0) && ($searchkey != "")) {
+                $dataSearch = [];
+                while ($row = mysqli_fetch_array($resultSearch, MYSQLI_ASSOC)) {
+                    $dataSearch[] = array(
+                        'MSHH' => $row['MSHH'],
+                        'TenHH' => $row['TenHH'],
+                        'Gia' => $row['Gia'],
+                        'TenLoaiHang' => $row['TenLoaiHang'],
+                        'HinhAnh' => $row['HinhAnh'],
+                    );
+                }
+            }
+        } else {
+            echo '<script>location.href="../index.php"</script>';
+        };
+
+        ?>
+        <div class="container card-banner">
+            <div class="card-group mt-2">
+                <div class="card">
+                    <img class="card-img-top" src="../../assets/uploads/banner/card-banner1.jpg" alt="Card image cap">
+                </div>
+            </div>
+        </div>
+        <div class="container product">
+            <div class="brand-product">
+                <div class="brand-product-title h1">Điện thoại
+                    <span style="background-color: #c4191b;">
+                        <hr>
+                    </span>
+                </div>
+                <?php foreach ($dataLH as $lh) : ?>
+                    <a href="/ltweb/frontend/pages/sp_theoloai.php?MaLoaiHang=<?= $lh['MaLoaiHang'] ?>"><span><?= $lh['TenLoaiHang'] ?></span></a>
+                <?php endforeach; ?>
+                <a href="/ltweb/frontend/pages/sanpham.php"><span>Tất cả</span></a>
+            </div>
+            <div class="product mt-3">
+                <div class="row">
+                    <div class="col-md-12 filter-price mb-3" style="height: 30px; padding-left: 30px;">
+                        <label style=" font-size: 16px; text-align: left; float: left; font-weight:500;">Chọn mức giá: </label>
+                        <form action="/ltweb/frontend/pages/sp_theogia.php" method="GET">
+                            <a href="/ltweb/frontend/pages/sp_theogia.php?p=<?= "Duoi-3-trieu" ?>">Dưới 3 triệu</a>
+                            <a href="/ltweb/frontend/pages/sp_theogia.php?p=<?= "Duoi-5-trieu" ?>">Dưới 5 triệu</a>
+                            <a href="/ltweb/frontend/pages/sp_theogia.php?p=<?= "Duoi-10-trieu" ?>">Dưới 10 triệu</a>
+                            <a href="/ltweb/frontend/pages/sp_theogia.php?p=<?= "Tu-10-20-trieu" ?>">Từ 10 - 20 triệu</a>
+                            <a href="/ltweb/frontend/pages/sp_theogia.php?p=<?= "Tren-20-trieu" ?>">Trên 20 triệu</a>
+                        </form>
+                    </div>
+                    <?php if (!empty($dataSearch)) : ?>
+
+                        <?php foreach ($dataSearch as $hh) : ?>
+                            <?php if (isset($hh['MSHH'])) : ?>
+                                <div class="col-md-3 mb-1">
+                                    <div class="card">
+                                        <?php $target_file = "../../assets/uploads/img-product/" . $hh['HinhAnh'] ?>
+                                        <?php if (empty($hh['HinhAnh']) || !file_exists($target_file)) : ?>
+                                            <img class="card-img-top zoom " src="/ltweb/assets/shared/default.png" width="160px" alt="Ảnh mặc định">
+                                        <?php else : ?>
+                                            <img class="card-img-top zoom " src="/ltweb/assets/uploads/img-product/<?= $hh['HinhAnh'] ?>" width="160px" alt="Ảnh <?php $hh['HinhAnh'] ?>">
+                                        <?php endif; ?>
+                                        <div class="card-body">
+                                            <h5 class="card-title pb-1" style="font-size: 14px; text-transform: capitalize;"><?= $hh['TenHH'] ?></h5>
+                                            <p class="card-text" style="color: #bf081f; font-weight: bold;"><?= number_format($hh['Gia'], 0, ',', '.') . "đ"; ?></p>
+                                            <a href="/ltweb/frontend/pages/chitietsp.php?MSHH=<?= $hh['MSHH'] ?>" class="btn btn-sm btn-info float-right">Xem chi tiết <i class="fas fa-angle-double-right"></i></a>
+                                        </div>
+                                    </div>
+                                </div>
+                            <?php endif; ?>
+                        <?php endforeach; ?>
+                    <?php else : ?>
+                        <div class="alert alert-secondary" role="alert">
+                            <h5>Không tìm thấy nội dung tìm kiếm</h5>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+    </main>
+    <?php include_once(__DIR__ . '/../layouts/partials/footer.php'); ?>
+    <?php include_once(__DIR__ . '/../layouts/scripts.php'); ?>
+    <script src="/ltweb/assets/frontend/js/app.js" type="text/javascript"></script>
+
+</body>
+
+</html>
